@@ -122,3 +122,4 @@
 /Users/sultanbacakoglu/DietTracking/DietTracking.API/bin/Debug/net10.0/Swashbuckle.AspNetCore.Swagger.dll
 /Users/sultanbacakoglu/DietTracking/DietTracking.API/bin/Debug/net10.0/Swashbuckle.AspNetCore.SwaggerGen.dll
 /Users/sultanbacakoglu/DietTracking/DietTracking.API/bin/Debug/net10.0/Swashbuckle.AspNetCore.SwaggerUI.dll
+/Users/sultanbacakoglu/DietTracking/DietTracking.API/obj/Debug/net10.0/DietTracking.API.sourcelink.json

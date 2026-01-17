@@ -3,6 +3,7 @@ using System;
 using DietTracking.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DietTracking.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251227200657_Add19")]
+    partial class Add19
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,68 +156,6 @@ namespace DietTracking.API.Migrations
                     b.ToTable("Clients", "public");
                 });
 
-            modelBuilder.Entity("DietTracking.API.Models.DietList", b =>
-                {
-                    b.Property<int>("DietListId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DietListId"));
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("DietListId");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("DietLists", "public");
-                });
-
-            modelBuilder.Entity("DietTracking.API.Models.DietListDetail", b =>
-                {
-                    b.Property<int>("DetailId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DetailId"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Day")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("DietListId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Meal")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("DetailId");
-
-                    b.HasIndex("DietListId");
-
-                    b.ToTable("DietListDetails", "public");
-                });
-
             modelBuilder.Entity("DietTracking.API.Models.User", b =>
                 {
                     b.Property<int>("UserId")
@@ -291,28 +232,6 @@ namespace DietTracking.API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DietTracking.API.Models.DietList", b =>
-                {
-                    b.HasOne("DietTracking.API.Models.Client", "Client")
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("DietTracking.API.Models.DietListDetail", b =>
-                {
-                    b.HasOne("DietTracking.API.Models.DietList", "DietList")
-                        .WithMany("Details")
-                        .HasForeignKey("DietListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DietList");
-                });
-
             modelBuilder.Entity("DietTracking.API.Models.AppointmentStatus", b =>
                 {
                     b.Navigation("Appointments");
@@ -326,11 +245,6 @@ namespace DietTracking.API.Migrations
             modelBuilder.Entity("DietTracking.API.Models.Client", b =>
                 {
                     b.Navigation("Appointments");
-                });
-
-            modelBuilder.Entity("DietTracking.API.Models.DietList", b =>
-                {
-                    b.Navigation("Details");
                 });
 
             modelBuilder.Entity("DietTracking.API.Models.User", b =>

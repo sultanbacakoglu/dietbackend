@@ -11,6 +11,9 @@ namespace DietTracking.API.Data
         {
         }
 
+        public DbSet<DietList> DietLists { get; set; }
+        public DbSet<DietListDetail> DietListDetails { get; set; }
+
         public DbSet<User> Users { get; set; }
         public DbSet<Client> Clients { get; set; }
         public DbSet<Appointment> Appointments { get; set; }

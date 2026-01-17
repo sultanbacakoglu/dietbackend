@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DietTracking.API.Data;
 using DietTracking.API.Models;
-using DietTracking.API.DTOs; // UserResponseDto için gerekli
+using DietTracking.API.DTOs;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace DietTracking.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")] // Bu satır sayesinde adres "api/users" olur
+    [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -24,11 +24,8 @@ namespace DietTracking.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUsers()
         {
-            // Veritabanındaki tüm kullanıcıları çek
             var users = await _context.Users.ToListAsync();
 
-            // Entity'leri DTO'ya çevir (Şifreleri gizlemek için)
-            // Eğer UserResponseDto dosyanız yoksa, geçici olarak anonim obje de döndürebiliriz ama DTO daha temizdir.
             var response = users.Select(u => new
             {
                 u.UserId,
@@ -41,6 +38,29 @@ namespace DietTracking.API.Controllers
             }).ToList();
 
             return Ok(response);
+        }
+
+        // PUT: api/users/change-password
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
+
+            if (user == null)
+                return NotFound(new { Message = "Kullanıcı bulunamadı." }); //JSON formatı
+
+            // Eski şifre kontrolü
+            if (user.PasswordHash != dto.CurrentPassword)
+            {
+                return BadRequest(new { Message = "Mevcut şifre hatalı." }); // JSON formatı
+            }
+
+            // Yeni şifreyi kaydet
+            user.PasswordHash = dto.NewPassword;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Şifre başarıyla güncellendi." });
         }
     }
 }

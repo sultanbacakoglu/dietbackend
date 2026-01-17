@@ -1,9 +1,12 @@
 using DietTracking.API.Data;
+using DietTracking.API.Models;
 using Microsoft.EntityFrameworkCore;
+// YENİ EKLENEN: Servislerin namespace'ini eklemeyi unutma
+using DietTracking.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1️⃣ Servisleri ekle
+// Servisleri ekle
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -12,15 +15,20 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ----------------------------------------------------------
-// 🚨 CORS GÜNCELLEMESİ: MOBİL GELİŞTİRME İÇİN GENİŞ İZİN
-// ----------------------------------------------------------
+// --- YENİ EKLENENLER BAŞLANGIÇ ---
+// 1. Email Servisi (Mail göndermek için)
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// 2. Randevu Hatırlatıcı (Arka plan görevi - Saatte bir çalışır)
+builder.Services.AddHostedService<AppointmentReminderService>();
+// --- YENİ EKLENENLER BİTİŞ ---
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
         policy =>
         {
-            policy.AllowAnyOrigin()  // Her yerden gelen isteği kabul et (Mobil için kritik)
+            policy.AllowAnyOrigin()
                   .AllowAnyMethod()
                   .AllowAnyHeader();
         });
@@ -28,28 +36,62 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 2️⃣ Middleware
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// ----------------------------------------------------------
-// 🚨 KRİTİK DÜZELTME: HTTPS YÖNLENDİRMESİNİ KAPAT
-// ----------------------------------------------------------
-// Android Emülatör SSL sertifikası hatası vermemesi için bunu kapatıyoruz.
-// app.UseHttpsRedirection(); 
-// ----------------------------------------------------------
-
 app.UseRouting();
 
-// CORS Middleware (UseRouting'den sonra, Auth'tan önce)
+// CORS 
 app.UseCors("AllowAll");
 
 app.UseAuthorization();
 
 app.MapControllers();
 app.MapGet("/health", () => Results.Ok("API is running!"));
+
+// Veritabanı ve Admin Kullanıcısı Oluşturma (Seeding)
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+
+        // Veritabanı yoksa oluşturur (Migration kullanıyorsan burayı context.Database.Migrate() yapabilirsin)
+        context.Database.EnsureCreated();
+
+        var adminUser = context.Users.FirstOrDefault(u => u.Username == "expert");
+
+        if (adminUser == null)
+        {
+            // Yoksa oluştur
+            context.Users.Add(new User
+            {
+                Username = "expert",
+                PasswordHash = "123", // Şifre: 123
+                Email = "expert@system.com",
+                FirstName = "Sistem",
+                LastName = "Yöneticisi",
+                Role = "Expert",
+                PhoneNumber = "5555555555"
+            });
+            context.SaveChanges();
+            Console.WriteLine("--> 'expert' kullanıcısı (Şifre: 123) başarıyla oluşturuldu.");
+        }
+        else
+        {
+            Console.WriteLine("--> 'expert' kullanıcısı zaten mevcut.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("--> Veritabanı başlatılırken hata oluştu: " + ex.Message);
+    }
+}
+// ----------------------------------------------------------
 
 app.Run();
